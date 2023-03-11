@@ -1,6 +1,9 @@
 package com.example.a4pics1word
 
+import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
@@ -13,19 +16,32 @@ import com.example.a4pics1word.databinding.ActivityQuestionsBinding
 import kotlin.random.Random
 
 class QuestionActivity : AppCompatActivity() {
+    private var last_que = 0
+    private var repeatedCount = 0
     private var currentIndex = 0
+    private var coins = 0
+    private lateinit var currentQuestion: Question
     private val answerList = mutableListOf<TextView>()
     private val optionList = mutableListOf<TextView>()
     private lateinit var binding: ActivityQuestionsBinding
     private val userAnswerList = mutableListOf<Pair<String, TextView>>()
-    private var pustoy = mutableListOf<Pair<String, TextView>>()
-    var level = 1
+    private var level = 1
 
 
+    @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         binding = ActivityQuestionsBinding.inflate(layoutInflater)
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
+
+        val pref: SharedPreferences = getSharedPreferences("TABLE", Context.MODE_PRIVATE)
+        val index = pref.getInt("last_que", 0)
+        val coin = pref.getInt("count_coin", 0)
+        currentIndex = index
+        coins = coin
+        binding.coinsCount.text = coins.toString()
+        level = index + 1
+        binding.levelCount.text = level.toString()
 
         fillOptionAndAnswerList()
 
@@ -90,6 +106,8 @@ class QuestionActivity : AppCompatActivity() {
 
 
     }
+
+
 
     private fun animationScaleUpView(id: Int) {
         val question = Constants.getQuestions()[currentIndex]
@@ -198,9 +216,12 @@ class QuestionActivity : AppCompatActivity() {
 
     }
 
+    @SuppressLint("SetTextI18n")
     fun setQuestion() {
+
         val que = Constants.getQuestions()[currentIndex]
         binding.apply {
+
             pic1.setImageResource(que.images[0])
             pic2.setImageResource(que.images[1])
             pic3.setImageResource(que.images[2])
@@ -294,18 +315,37 @@ class QuestionActivity : AppCompatActivity() {
             }
 
             if (answer == Constants.getQuestions()[currentIndex].answer) {
-                if (currentIndex >= Constants.getQuestions().lastIndex) {
-                    val intent = Intent(this, MainActivity::class.java)
-                    startActivity(intent)
+                if (currentIndex == 4) {
+                    currentIndex = 0
                     level = 1
+                    binding.levelCount.text = level.toString()
                 }else{
-                    currentIndex++
                     level++
+                    currentIndex++
                 }
+
+                val anim = AnimationUtils.loadAnimation(this, R.anim.circle_anim)
+                val infinity = binding.rotateAnim
+                infinity.startAnimation(anim)
+                binding.sumbit.visibility = View.VISIBLE
+
+                binding.btnNext.setOnClickListener {
+                    binding.sumbit.visibility = View.GONE
+                    setQuestion()
+
+                    val addCoin = coins + 4
+                    coins = addCoin
+                    binding.coinsCount.text = coins.toString()
+
+                    val pref: SharedPreferences = getSharedPreferences("TABLE", Context.MODE_PRIVATE)
+                    pref.edit().putInt("last_que", currentIndex).apply()
+                    pref.edit().putInt("count_coin", coins).apply()
+                }
+
                 binding.levelCount.text = level.toString()
                 setQuestion()
             } else {
-                Toast.makeText(this, "Неправильно", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Error", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -323,5 +363,8 @@ class QuestionActivity : AppCompatActivity() {
             userAnswerList[index] = Pair("", binding.tvOption1)
         }
     }
+
+
+
 
 }

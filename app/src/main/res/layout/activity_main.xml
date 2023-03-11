@@ -45,10 +45,11 @@
                 android:src="@drawable/coins" />
 
             <TextView
+                android:id="@+id/coins_count"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="2dp"
-                android:text="412"
+                android:text="0"
                 android:textColor="@color/white" />
 
             <ImageView
@@ -170,6 +171,7 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
+            android:id="@+id/level"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="1"
